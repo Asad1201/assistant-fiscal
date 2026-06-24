@@ -13,9 +13,10 @@ from pypdf import PdfReader
 # En-tete repete en haut de chaque page, a retirer du texte indexe.
 ENTETE_COURANTE = re.compile(r"^Code G[ée]n[ée]ral des Imp[ôo]ts\b.*$")
 
-# Un en-tete d'article : "Article 492.-" ou "Article 493 .-" ou "Article 1er.-".
+# Un en-tete d'article : "Article 492.-", "Article 17 bis.-", "Article 1er.-",
+# ou un article du Livre des Procedures Fiscales "Article L 94 bis.-".
 # Le ".-" distingue le vrai en-tete d'une simple reference ("l'Article 476 ci-dessus").
-ENTETE_ARTICLE = re.compile(r"Article\s+(\d+\s*(?:er|bis|ter|quater)?)\s*\.\s*-")
+ENTETE_ARTICLE = re.compile(r"Article\s+(L\s*)?(\d+(?:\s*(?:er|bis|ter|quater))?)\s*\.\s*-")
 
 # Au-dela de cette taille, un article est resegmente en sous-blocs.
 TAILLE_MAX_ARTICLE = 2500
@@ -70,7 +71,8 @@ def decouper_cgi(chemin_pdf: str, titre_document: str, source_url: str) -> list[
     for i, match in enumerate(entetes):
         debut = match.start()
         fin = entetes[i + 1].start() if i + 1 < len(entetes) else len(texte_complet)
-        numero = re.sub(r"\s+", " ", match.group(1)).strip()
+        prefixe = match.group(1) or ""
+        numero = re.sub(r"\s+", " ", prefixe + match.group(2)).strip()
         texte_article = texte_complet[debut:fin].strip()
         section = f"Article {numero}"
         page = page_de(debut)
