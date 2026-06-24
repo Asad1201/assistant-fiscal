@@ -1,2 +1,5 @@
 anthropic==0.111.0
 python-dotenv==1.2.2
+pypdf==6.14.1
+rank_bm25==0.2.2
+numpy==2.5.0
