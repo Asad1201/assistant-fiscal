@@ -47,8 +47,12 @@ def _nettoyer_page(texte: str) -> str:
     return re.sub(r"\s+", " ", texte).strip()
 
 
-def decouper_cgi(chemin_pdf: str, titre_document: str, source_url: str) -> list[dict]:
-    """Decoupe le PDF du CGI en chunks, un par article, avec page d'origine."""
+def decouper_cgi(chemin_pdf: str, titre_document: str, source_url: str, type_source: str = "cgi") -> list[dict]:
+    """Decoupe un PDF de loi en chunks, un par article, avec page d'origine.
+
+    Convient au CGI comme a la loi de finances : tout texte legal structure en
+    "Article N.-". `type_source` distingue l'origine (cgi, loi-finances-2026...).
+    """
     reader = PdfReader(chemin_pdf)
 
     # Concatene tout le document en suivant l'offset de debut de chaque page,
@@ -78,12 +82,38 @@ def decouper_cgi(chemin_pdf: str, titre_document: str, source_url: str) -> list[
         page = page_de(debut)
 
         if len(texte_article) <= TAILLE_MAX_ARTICLE:
-            chunks.append(_creer_chunk(texte_article, chemin_pdf, titre_document, section, page, source_url))
+            chunks.append(_creer_chunk(texte_article, chemin_pdf, titre_document, section, page, source_url, type_source))
         else:
             for j, sous_bloc in enumerate(_resegmenter(texte_article, TAILLE_MAX_ARTICLE)):
                 titre_sous = section if j == 0 else f"{section} (suite {j + 1})"
-                chunks.append(_creer_chunk(sous_bloc, chemin_pdf, titre_document, titre_sous, page, source_url))
+                chunks.append(_creer_chunk(sous_bloc, chemin_pdf, titre_document, titre_sous, page, source_url, type_source))
 
+    return chunks
+
+
+def decouper_pdf_par_blocs(chemin_pdf: str, titre_document: str, source_url: str,
+                           type_source: str, taille_bloc: int = 1500) -> list[dict]:
+    """Decoupe un PDF non structure en articles (note de synthese, circulaire)
+    en blocs de taille bornee, page par page, avec le numero de page en source.
+
+    Sert aux documents thematiques (ex : "mesures fiscales nouvelles") ou il n'y
+    a pas d'"Article N.-" a isoler : on garde la granularite par page pour une
+    citation fiable, et on resegmente les pages trop longues.
+    """
+    reader = PdfReader(chemin_pdf)
+    chunks = []
+    for index_page, page in enumerate(reader.pages):
+        texte = _nettoyer_page(page.extract_text())
+        if len(texte) < 40:  # page de garde / quasi vide : on ignore
+            continue
+        numero_page = index_page + 1
+        section = f"page {numero_page}"
+        if len(texte) <= taille_bloc:
+            chunks.append(_creer_chunk(texte, chemin_pdf, titre_document, section, numero_page, source_url, type_source))
+        else:
+            for j, sous_bloc in enumerate(_resegmenter(texte, taille_bloc)):
+                titre_sous = section if j == 0 else f"{section} (suite {j + 1})"
+                chunks.append(_creer_chunk(sous_bloc, chemin_pdf, titre_document, titre_sous, numero_page, source_url, type_source))
     return chunks
 
 
@@ -104,11 +134,11 @@ def _resegmenter(texte: str, taille_max: int) -> list[str]:
     return blocs
 
 
-def _creer_chunk(texte: str, source_fichier: str, titre_document: str, section: str, page: int, source_url: str) -> dict:
+def _creer_chunk(texte: str, source_fichier: str, titre_document: str, section: str, page: int, source_url: str, type_source: str = "cgi") -> dict:
     return {
         "texte": texte,
         "source_fichier": source_fichier,
-        "type_source": "cgi",
+        "type_source": type_source,
         "titre_document": titre_document,
         "section": section,
         "page": page,

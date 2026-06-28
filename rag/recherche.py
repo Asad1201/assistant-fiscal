@@ -13,8 +13,19 @@ def tokeniser(texte: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", texte_sans_accents)
 
 
+def _texte_indexable(chunk: dict) -> str:
+    """Texte sur lequel BM25 indexe un chunk : on prefixe le titre du document
+    (et la section) au contenu. Sans ca, un petit chunk decoupe par section (ex.
+    "Coût et validité") perd le sujet du document (ex. "ACF") present seulement
+    dans le titre, et devient introuvable sur une question qui cite ce sujet.
+    """
+    titre = chunk.get("titre_document") or ""
+    section = chunk.get("section") or ""
+    return f"{titre} {section} {chunk['texte']}"
+
+
 def construire_bm25(chunks: list[dict]) -> BM25Okapi:
-    corpus_tokenise = [tokeniser(chunk["texte"]) for chunk in chunks]
+    corpus_tokenise = [tokeniser(_texte_indexable(chunk)) for chunk in chunks]
     return BM25Okapi(corpus_tokenise)
 
 

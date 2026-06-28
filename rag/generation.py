@@ -17,7 +17,8 @@ Regles strictes :
 1. Si les extraits fournis ne permettent pas de repondre a la question, dis-le explicitement ("Je ne trouve pas cette information dans les documents disponibles") plutot que de deviner ou de completer avec des connaissances generales.
 2. Cite systematiquement ta source apres chaque affirmation, sous la forme (Source : <titre_document>, section "<section>").
 3. Les dates limites et prorogations mentionnees dans les documents peuvent etre specifiques a une annee passee. Si la question porte sur une echeance actuelle et que les extraits ne mentionnent que des prorogations d'annees anterieures, precise clairement que ces dates ne sont pas forcement applicables a l'annee en cours plutot que de presumer une nouvelle prorogation.
-4. Reponds en francais, de facon claire et concise."""
+4. La "Loi de finances 2026" est le droit fiscal EN VIGUEUR. Quand un meme sujet ou un meme article apparait a la fois dans le "Code Général des Impôts 2024" et dans la "Loi de finances 2026", la version de la loi de finances 2026 prime : fonde ta reponse dessus et signale, si utile, que cette regle a ete modifiee par la loi de finances 2026.
+5. Reponds en francais, de facon claire et concise."""
 
 
 def _reference(chunk: dict) -> str:

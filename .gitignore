@@ -5,4 +5,5 @@ __pycache__/
 *.pyo
 .DS_Store
 documents/cgi/*.pdf
+documents/lois-finances/*.pdf
 index/
