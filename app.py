@@ -17,6 +17,31 @@ load_dotenv()
 st.set_page_config(page_title="Assistant Fiscal Cameroun", page_icon="📑", layout="centered")
 
 
+def _acces_autorise() -> bool:
+    """Protege la demo par mot de passe quand APP_PASSWORD est configure
+    (ex. sur Streamlit Cloud via les secrets). En local, sans APP_PASSWORD,
+    l'acces est libre. Evite qu'un visiteur anonyme consomme la cle API.
+    """
+    attendu = os.environ.get("APP_PASSWORD")
+    if not attendu:
+        return True
+    if st.session_state.get("acces_ok"):
+        return True
+    st.title("📑 Assistant Fiscal Cameroun")
+    saisie = st.text_input("Mot de passe d'accès", type="password")
+    if saisie:
+        if saisie == attendu:
+            st.session_state.acces_ok = True
+            st.rerun()
+        else:
+            st.error("Mot de passe incorrect.")
+    return False
+
+
+if not _acces_autorise():
+    st.stop()
+
+
 @st.cache_resource(show_spinner="Chargement de l'index documentaire...")
 def _charger_index():
     return charger_index()

@@ -6,4 +6,5 @@ __pycache__/
 .DS_Store
 documents/cgi/*.pdf
 documents/lois-finances/*.pdf
-index/
+# index/ est versionne : il est necessaire au deploiement (Streamlit Cloud n'a
+# pas les PDF sources pour le reconstruire). Le rebuild + commit = redeploiement.
